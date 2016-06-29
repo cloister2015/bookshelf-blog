@@ -1,5 +1,6 @@
 'use strict';
 const _ = require('lodash');
+const Promise = require('bluebird');
 const Boom = require('boom');
 const Joi = require('joi');
 const Hapi = require('hapi');
@@ -14,6 +15,19 @@ server.connection({
   host: process.env.HOST || 'localhost',
   port: process.env.PORT || 8080
 });
+
+const knex = require('knex')({
+  client: 'mysql',
+  connection: {
+    host: '0.0.0.0',
+    user: 'root',
+    password: 'melanielaurent',
+    database: 'blog',
+    charset: 'utf8'
+  }
+});
+
+const Bookshelf = require('bookshelf')(knex);
 
 server.register([
 { register: Inert },
@@ -46,7 +60,6 @@ server.register([
   if (err) {
     throw err;
   }
-
 
   server.route({
     method: 'GET',
