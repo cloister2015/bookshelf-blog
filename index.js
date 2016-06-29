@@ -17,13 +17,13 @@ server.connection({
 });
 
 const knex = require('knex')({
-  client: 'mysql',
+  client: process.env.BLOG_DB_CLIENT || 'mysql',
   connection: {
-    host: '0.0.0.0',
-    user: 'root',
-    password: 'melanielaurent',
-    database: 'blog',
-    charset: 'utf8'
+    host: process.env.BLOG_DB_HOST || '0.0.0.0',
+    user: process.env.BLOG_DB_USER || 'root',
+    password: process.env.BLOG_DB_PASSWORD || 'melanielaurent',
+    database: process.env.BLOG_DB_DATABASE || 'blog',
+    charset: process.env.BLOG_DBCHARSET || 'utf8'
   }
 });
 
