@@ -250,6 +250,7 @@ server.register([
   });
 
   // Categories
+
   server.route({
     method: 'GET',
     path: '/categories',
@@ -259,9 +260,17 @@ server.register([
       notes: 'fetch all categories.'
     },
     handler: function (request, reply) {
-      return reply('');
+      Categories.forge()
+      .fetch()
+      .then(function(data) {
+        return reply(data);
+      })
+      .catch(function(err) {
+        return reply(err);
+      });
     }
   });
+
 
   server.route({
     method: 'POST',
@@ -269,38 +278,95 @@ server.register([
     config: {
       tags: ['api'],
       description: 'create a new category',
-      notes: 'create a new category.'
+      notes: 'create a new category.',
+      validate: {
+        payload: {
+          name: Joi.string().required()
+        }
+      }
     },
     handler: function (request, reply) {
-      return reply('');
+      Category.forge({
+        name: request.payload.name
+      })
+      .save()
+      .then(function (category) {
+        return reply(category);
+      })
+      .catch(function (err) {
+        return reply(err);
+      });
     }
   });
-
+/*
   server.route({
     method: 'GET',
     path: '/categories/{id}',
     config: {
       tags: ['api'],
       description: 'fetch a single category',
-      notes: 'fetch a single category.'
+      notes: 'fetch a single category.',
+      validate: {
+        payload: {
+          id: Joi.number()
+        }
+      }
     },
     handler: function (request, reply) {
-      return reply('');
+      Category.forge({
+        id: reqeust.payload.id
+      })
+      .fetch()
+      .then(function (category) {
+        if(!category) {
+          return reply({});
+        }
+        else {
+          return reply(category);
+        }
+      })
+      .catch(function (err) {
+        return reply(err);
+      });
     }
   });
-
+*/
   server.route({
     method: 'PUT',
     path: '/categories/{id}',
     config: {
       tags: ['api'],
       description: 'update a category',
-      notes: 'update a category.'
+      notes: 'update a category.',
+      validate: {
+        payload: {
+          id: Joi.number().required(),
+          name: Joi.string()
+        }
+      }
     },
     handler: function (request, reply) {
-      return reply('');
+      Category.forge({
+        id: request.payload.id
+      })
+      .fetch({require:true})
+      .then(function (category) {
+        category.save({
+          name: request.payload.name || category.get('name')
+        })
+        .then(function () {
+          return reply('category updated successfully.');
+        })
+        .catch(function (err) {
+          return reply(err);
+        });
+      })
+      .catch(function (err) {
+        return reply(err);
+      });
     }
   });
+
 
   server.route({
     method: 'DELETE',
@@ -308,10 +374,30 @@ server.register([
     config: {
       tags: ['api'],
       description: 'remove a category',
-      notes: 'remove a category.'
+      notes: 'remove a category.',
+      validate: {
+        payload: {
+          id: Joi.number().required()
+        }
+      }
     },
     handler: function (request, reply) {
-      return reply('');
+      Category.forge({
+        id: request.payload.id
+      })
+      .fetch({require:true})
+      .then(function (category) {
+        category.destroy()
+        .then(function () {
+          return reply('category removed successfully.');
+        })
+        .catch(function (err) {
+          return reply(err);
+        });
+      })
+      .catch(function (err) {
+        return reply(err);
+      });
     }
   });
 
