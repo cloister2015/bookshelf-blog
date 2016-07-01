@@ -115,7 +115,14 @@ server.register([
       notes: 'fetch all users.'
     },
     handler: function (request, reply) {
-      return rely('');
+      Users.forge() //model.forge :: A simple helper function to instantiate a new Model without needing new.
+      .fetch()
+      .then(function (collection) {
+        return reply(collection);
+      })
+      .catch(function (error) {
+        return reply(error);
+      });
     }
   });
 
@@ -125,10 +132,26 @@ server.register([
     config: {
       tags: ['api'],
       description: 'create a new user',
-      notes: 'create a new user.'
+      notes: 'create a new user.',
+      validate: {
+        params: {
+          name:  Joi.string().required(),
+          email: Joi.string().required()
+        }
+      }
     },
     handler: function (request, reply) {
-      return reply('');
+      User.forge({
+        name: request.params.name,
+        email: request.params.email
+      })
+      .save() // model.save :: A promise resolving to the saved and updated model.
+      .then(function (data) {
+        return reply(data);
+      })
+      .catch(function (err) {
+        return reply(`${err}`);
+      });
     }
   });
 
@@ -138,10 +161,26 @@ server.register([
     config: {
       tags: ['api'],
       description: 'fetch a single user by id',
-      notes: 'fetch a single user by id.'
+      notes: 'fetch a single user by id.',
+      validate: {
+        params: {
+          id: Joi.number().required()
+        }
+      }
     },
     handler: function (request, reply) {
-      return reply('');
+      User.forge({id:request.params.id})
+      .fetch() // Model.fetch :: A promise resolving to the fetched model or null if none exists.
+      .then(function (user) {
+        if (!user) {
+          return reply({});
+        } else {
+          return reply(user);
+        }
+      })
+      .catch(function(err) {
+        return reply(err);
+      });
     }
   });
 
@@ -151,22 +190,62 @@ server.register([
     config: {
       tags: ['api'],
       description: 'update a user',
-      notes: 'update a user.'
+      notes: 'update a user.',
+      validate: {
+        params: {
+          id: Joi.number().required(),
+          name: Joi.string(),
+          email: Joi.string()
+        }
+      }
     },
     handler: function (request, reply) {
-      return reply('');
+      User.forge({id: request.params.id})
+      .fetch({require:true})
+      .then(function (user) {
+        user.save({
+          name: request.params.name || user.get('name'),
+          email: request.params.email || user.get('email')
+        }).then(function () {
+          return reply('user updated successfully');
+        }).catch(function (err) {
+          return reply(err);
+        })
+      })
+      .catch(function (err) {
+        return reply(err);
+      });
     }
   });
+
   server.route({
     method: 'DELETE',
     path: '/users/{id}',
     config: {
       tags: ['api'],
       description: 'remove a user',
-      notes: 'remove user.'
+      notes: 'remove user.',
+      validate: {
+        params: {
+          id: Joi.number().required()
+        }
+      }
     },
     handler: function (request, reply) {
-      return reply('');
+      User.forge({id: request.params.id})
+      .fetch({require:true})
+      .then(function(user) {
+          user.destroy()
+          .then(function() {
+            return reply('user removed successfully.');
+          })
+          .catch(function (err) {
+            return reply(err);
+          });
+      })
+      .catch(function (err) {
+        return reply(err);
+      })
     }
   });
 
